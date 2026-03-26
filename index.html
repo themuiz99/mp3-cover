@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Cover Designer Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #0a0a0a;
+            color: #f5f5f5;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            cursor: move;
+        }
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: #262626;
+            height: 6px;
+            border-radius: 3px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row items-center justify-between mb-8 gap-4 border-b border-neutral-800 pb-6">
+            <h1 class="text-2xl font-bold text-indigo-500 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                Music Cover Designer
+            </h1>
+            <button id="downloadBtn" class="bg-indigo-600 hover:bg-indigo-500 px-8 py-3 rounded-xl font-bold flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                บันทึกปกเพลง (JPG)
+            </button>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            <!-- Left: Preview -->
+            <div class="relative group">
+                <div id="dropZone" class="relative aspect-square w-full bg-neutral-900 rounded-3xl overflow-hidden border-2 border-dashed border-neutral-800 hover:border-indigo-500 transition-all flex items-center justify-center cursor-pointer">
+                    <canvas id="mainCanvas" class="hidden"></canvas>
+                    
+                    <div id="uploadPrompt" class="flex flex-col items-center text-neutral-500">
+                        <div class="bg-neutral-800 p-8 rounded-full mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-400"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7"/><line x1="16" x2="22" y1="5" y2="5"/><line x1="19" x2="19" y1="2" y2="8"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                        </div>
+                        <p class="text-xl font-bold">แตะตรงนี้เพื่ออัปโหลดรูปภาพ</p>
+                        <p class="text-sm mt-2 opacity-60 text-center px-4">รูปภาพจะถูกปรับเป็นขนาด 1000x1000 px อัตโนมัติ</p>
+                    </div>
+
+                    <button id="changeImgBtn" class="hidden absolute top-4 right-4 bg-black/70 hover:bg-black/90 p-3 rounded-full text-white backdrop-blur-md border border-white/20 z-10 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+                    </button>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" class="hidden">
+                <p class="text-neutral-600 text-xs mt-4 text-center">เคล็ดลับ: เมื่ออัปโหลดแล้ว สามารถใช้เมาส์หรือนิ้วลากบนรูปเพื่อจัดตำแหน่งได้จ้า</p>
+            </div>
+
+            <!-- Right: Tools -->
+            <div class="space-y-8 bg-neutral-900/50 p-8 rounded-3xl border border-neutral-800">
+                <!-- Text Inputs -->
+                <div class="space-y-4">
+                    <h3 class="text-indigo-400 font-bold uppercase tracking-widest text-sm flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" x2="15" y1="20" y2="20"/><line x1="12" x2="12" y1="4" y2="20"/></svg>
+                        ตั้งค่าข้อความ
+                    </h3>
+                    <input type="text" id="songTitleInput" placeholder="พิมพ์ชื่อเพลงที่นี่..." class="w-full bg-neutral-800 border border-neutral-700 rounded-xl py-4 px-6 focus:ring-2 focus:ring-indigo-500 outline-none transition-all text-xl font-medium">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-xs font-bold text-neutral-500 uppercase">
+                                <span>ขนาดตัวอักษร</span>
+                                <span id="fontSizeVal" class="text-indigo-400">333 px</span>
+                            </div>
+                            <input type="range" id="fontSizeRange" min="50" max="600" value="333" class="w-full">
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-xs font-bold text-neutral-500 uppercase">
+                                <span>ตำแหน่ง (สูง-ต่ำ)</span>
+                                <span id="textYVal" class="text-indigo-400">800</span>
+                            </div>
+                            <input type="range" id="textYRange" min="100" max="950" value="800" class="w-full">
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="border-neutral-800">
+
+                <!-- Image Effects -->
+                <div class="space-y-6">
+                    <h3 class="text-indigo-400 font-bold uppercase tracking-widest text-sm flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="12" x2="12" y1="2" y2="4"/><line x1="12" x2="12" y1="20" y2="22"/><line x1="2" x2="4" y1="12" y2="12"/><line x1="20" x2="22" y1="12" y2="12"/></svg>
+                        เอฟเฟกต์รูปภาพ
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-xs font-bold text-neutral-500 uppercase">
+                                <span>ซูมภาพ</span>
+                                <span id="scaleVal" class="text-indigo-400">100%</span>
+                            </div>
+                            <input type="range" id="scaleRange" min="0.5" max="3" step="0.01" value="1" class="w-full">
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-xs font-bold text-neutral-500 uppercase">
+                                <span>ความสว่าง (ดรอป 10%)</span>
+                                <span id="brightnessVal" class="text-indigo-400">90%</span>
+                            </div>
+                            <input type="range" id="brightnessRange" min="0" max="150" value="90" class="w-full">
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-xs font-bold text-neutral-500 uppercase">
+                                <span>ความคมชัด</span>
+                                <span id="contrastVal" class="text-indigo-400">100%</span>
+                            </div>
+                            <input type="range" id="contrastRange" min="0" max="200" value="100" class="w-full">
+                        </div>
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-xs font-bold text-neutral-500 uppercase">
+                                <span>ความฟุ้ง (Blur)</span>
+                                <span id="blurVal" class="text-indigo-400">0 px</span>
+                            </div>
+                            <input type="range" id="blurRange" min="0" max="20" value="0" class="w-full">
+                        </div>
+                        <div class="space-y-3 lg:col-span-2">
+                            <div class="flex justify-between text-xs font-bold text-neutral-500 uppercase">
+                                <span>เงาขอบมืด (Vignette)</span>
+                                <span id="vignetteVal" class="text-indigo-400">0%</span>
+                            </div>
+                            <input type="range" id="vignetteRange" min="0" max="100" value="0" class="w-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('mainCanvas');
+        const ctx = canvas.getContext('2d');
+        const fileInput = document.getElementById('fileInput');
+        const dropZone = document.getElementById('dropZone');
+        const uploadPrompt = document.getElementById('uploadPrompt');
+        const changeImgBtn = document.getElementById('changeImgBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // Inputs
+        const songTitleInput = document.getElementById('songTitleInput');
+        const fontSizeRange = document.getElementById('fontSizeRange');
+        const textYRange = document.getElementById('textYRange');
+        const scaleRange = document.getElementById('scaleRange');
+        const brightnessRange = document.getElementById('brightnessRange');
+        const contrastRange = document.getElementById('contrastRange');
+        const blurRange = document.getElementById('blurRange');
+        const vignetteRange = document.getElementById('vignetteRange');
+
+        let uploadedImage = null;
+        let isDragging = false;
+        let startX, startY;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        // Initialize Canvas
+        canvas.width = 1000;
+        canvas.height = 1000;
+
+        function draw() {
+            ctx.clearRect(0, 0, 1000, 1000);
+            ctx.fillStyle = '#111';
+            ctx.fillRect(0, 0, 1000, 1000);
+
+            if (uploadedImage) {
+                ctx.save();
+                ctx.filter = `brightness(${brightnessRange.value}%) contrast(${contrastRange.value}%) blur(${blurRange.value}px)`;
+                
+                const scale = parseFloat(scaleRange.value);
+                const imgAspect = uploadedImage.width / uploadedImage.height;
+                let drawW, drawH;
+
+                if (imgAspect > 1) {
+                    drawH = 1000 * scale;
+                    drawW = drawH * imgAspect;
+                } else {
+                    drawW = 1000 * scale;
+                    drawH = drawW / imgAspect;
+                }
+
+                ctx.drawImage(
+                    uploadedImage, 
+                    (1000 - drawW) / 2 + offsetX, 
+                    (1000 - drawH) / 2 + offsetY, 
+                    drawW, 
+                    drawH
+                );
+                ctx.restore();
+
+                // Vignette
+                const vigValue = parseInt(vignetteRange.value);
+                if (vigValue > 0) {
+                    const gradient = ctx.createRadialGradient(500, 500, 200, 500, 500, 700);
+                    gradient.addColorStop(0, 'rgba(0,0,0,0)');
+                    gradient.addColorStop(1, `rgba(0,0,0,${vigValue / 100})`);
+                    ctx.fillStyle = gradient;
+                    ctx.fillRect(0, 0, 1000, 1000);
+                }
+            }
+
+            // Text
+            const title = songTitleInput.value;
+            if (title) {
+                const fSize = parseInt(fontSizeRange.value);
+                ctx.save();
+                ctx.font = `italic bold ${fSize}px "Sarabun", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                
+                const x = 500;
+                const y = parseInt(textYRange.value);
+
+                // Stroke
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = fSize * 0.12;
+                ctx.lineJoin = 'round';
+                ctx.strokeText(title, x, y);
+
+                // Fill
+                ctx.fillStyle = 'white';
+                ctx.fillText(title, x, y);
+                ctx.restore();
+            }
+        }
+
+        // Handle Image Upload
+        function handleFile(file) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    uploadedImage = img;
+                    offsetX = 0;
+                    offsetY = 0;
+                    scaleRange.value = 1;
+                    brightnessRange.value = 90; // Auto drop 10%
+                    updateLabels();
+                    canvas.classList.remove('hidden');
+                    uploadPrompt.classList.add('hidden');
+                    changeImgBtn.classList.remove('hidden');
+                    dropZone.style.borderStyle = 'solid';
+                    draw();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        dropZone.onclick = (e) => {
+            if (!uploadedImage) fileInput.click();
+        };
+
+        changeImgBtn.onclick = (e) => {
+            e.stopPropagation();
+            fileInput.click();
+        };
+
+        fileInput.onchange = (e) => handleFile(e.target.files[0]);
+
+        // Drag and Drop Mouse/Touch
+        function startDrag(e) {
+            if (!uploadedImage) return;
+            isDragging = true;
+            const pos = getPos(e);
+            startX = pos.x - offsetX;
+            startY = pos.y - offsetY;
+        }
+
+        function moveDrag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+            const pos = getPos(e);
+            offsetX = pos.x - startX;
+            offsetY = pos.y - startY;
+            draw();
+        }
+
+        function endDrag() { isDragging = false; }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            return {
+                x: (clientX - rect.left) * (1000 / rect.width),
+                y: (clientY - rect.top) * (1000 / rect.height)
+            };
+        }
+
+        dropZone.addEventListener('mousedown', startDrag);
+        window.addEventListener('mousemove', moveDrag);
+        window.addEventListener('mouseup', endDrag);
+
+        dropZone.addEventListener('touchstart', startDrag);
+        window.addEventListener('touchmove', moveDrag);
+        window.addEventListener('touchend', endDrag);
+
+        // Inputs Update
+        const inputs = [songTitleInput, fontSizeRange, textYRange, scaleRange, brightnessRange, contrastRange, blurRange, vignetteRange];
+        inputs.forEach(input => {
+            input.oninput = () => {
+                updateLabels();
+                draw();
+            };
+        });
+
+        function updateLabels() {
+            document.getElementById('fontSizeVal').innerText = fontSizeRange.value + ' px';
+            document.getElementById('textYVal').innerText = textYRange.value;
+            document.getElementById('scaleVal').innerText = Math.round(scaleRange.value * 100) + '%';
+            document.getElementById('brightnessVal').innerText = brightnessRange.value + '%';
+            document.getElementById('contrastVal').innerText = contrastRange.value + '%';
+            document.getElementById('blurVal').innerText = blurRange.value + ' px';
+            document.getElementById('vignetteVal').innerText = vignetteRange.value + '%';
+        }
+
+        // Download
+        downloadBtn.onclick = () => {
+            if (!uploadedImage) return;
+            const link = document.createElement('a');
+            link.download = `cover-${songTitleInput.value || 'music'}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        };
+
+        // Initial Draw
+        draw();
+    </script>
+</body>
+</html>
+
+                                                                                                                                                                                                                                                                                                                                                                                                                      
